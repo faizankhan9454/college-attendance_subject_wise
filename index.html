@@ -2,6 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>College Attendance Tracker</title>
+<!-- Clear buttons reset attendance status only; class slots are preserved/restored from the weekly schedule. -->
 <style>
 *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f3f4f6;color:#111827}
 .wrap{max-width:1200px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -63,9 +64,9 @@ function renderMonth(){data.currentMonth=key();ensure(key());var k=key(),h="",to
 function dayName(k,d){return dn(k,d)}
 function mark(d,i,v){data.months[key()][d][i].present=v;save();renderMonth();renderTables()}
 function dayAll(d,v){for(var i=0;i<data.months[key()][d].length;i++)data.months[key()][d][i].present=v;save();renderMonth();renderTables()}
-function clearDay(d){var a=data.months[key()][d]||[];for(var i=0;i<a.length;i++)a[i].present=null;data.months[key()][d]=a;save();renderMonth();renderTables()}
+function clearDay(d){var k=key(),a=data.months[k][d]||[],n=a.length,day=dayName(k,d),i;if(n===0)n=data.schedule[day]||0;a=[];for(i=0;i<n;i++)a.push({subject:data.defaults[day][i]||data.subjects[i]||"",present:null});data.months[k][d]=a;save();renderMonth();renderTables()}
 function allMonth(v){var k=key();ensure(k);for(var d=1;d<=daysIn(k);d++)for(var i=0;i<data.months[k][d].length;i++)data.months[k][d][i].present=v;save();renderMonth();renderTables()}
-function clearMonth(){var k=key();ensure(k);for(var d=1;d<=daysIn(k);d++)for(var i=0;i<data.months[k][d].length;i++)data.months[k][d][i].present=null;save();renderMonth();renderTables()}
+function clearMonth(){var k=key(),d,day,i,n,a;ensure(k);for(d=1;d<=daysIn(k);d++){day=dayName(k,d);n=data.months[k][d].length;if(n===0)n=data.schedule[day]||0;a=[];for(i=0;i<n;i++)a.push({subject:data.defaults[day][i]||data.subjects[i]||"",present:null});data.months[k][d]=a}save();renderMonth();renderTables()}
 function stat(k,s){var c=0,p=0,a=data.months[k]||{};for(var d in a)for(var i=0;i<a[d].length;i++)if(a[d][i].subject===s&&a[d][i].present!==null){c++;if(a[d][i].present)p++}return {c:c,p:p}}
 function pct(p,c){return c?(p*100/c).toFixed(1)+"%":"—"}
 function renderTables(){var k=key(),h='<table><tr><th>Class</th><th>Conducted</th><th>Present</th><th>Missed</th><th>Percentage</th></tr>',i,t;for(i=0;i<data.classCount;i++){t=stat(k,data.subjects[i]);h+='<tr><td>'+esc(data.subjects[i])+'</td><td>'+t.c+'</td><td>'+t.p+'</td><td>'+(t.c-t.p)+'</td><td><b>'+pct(t.p,t.c)+'</b></td></tr>'}h+='</table>';document.getElementById("monthly").innerHTML=h;var from=document.getElementById("from").value,to=document.getElementById("to").value,keys=[],x,y,z;if(from>to){document.getElementById("combined").innerHTML='<p>Invalid range.</p>';return}for(y=2026;y<=2028;y++)for(z=1;z<=12;z++){x=y+"-"+("0"+z).slice(-2);if(ym(x)>=ym(from)&&ym(x)<=ym(to)&&data.months[x]){var has=false;for(i=0;i<data.classCount;i++)if(stat(x,data.subjects[i]).c)has=true;if(has)keys.push(x)}}h='<p class="muted">Months included: '+(keys.map(label).join(", ")||"None")+'</p><table><tr><th>Class</th><th>Conducted</th><th>Present</th><th>Missed</th><th>Combined %</th></tr>';for(i=0;i<data.classCount;i++){var c=0,p=0;for(var r=0;r<keys.length;r++){t=stat(keys[r],data.subjects[i]);c+=t.c;p+=t.p}h+='<tr><td>'+esc(data.subjects[i])+'</td><td>'+c+'</td><td>'+p+'</td><td>'+(c-p)+'</td><td><b>'+pct(p,c)+'</b></td></tr>'}document.getElementById("combined").innerHTML=h+"</table>"}
